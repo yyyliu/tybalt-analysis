@@ -172,34 +172,12 @@ def im_vector ():
     plt.savefig('./result/mesen-immuno-diff.png')
     print('Skewness: {}'.format(skew(diff)))
 
-    # # what if I directly compute the mean of input genes?
-    # raw = util.read_raw()
-    # raw_genes = np.asarray([np.mean(raw[g], axis=0) for g in groups], dtype=float)
-    # raw_diff = raw_genes[0] - raw_genes[1] # mesenchymal - immunoreactive
-    # raw_srt = np.argsort(raw_diff)
-    # print('Comparing with raw')
-    # compare_results(srt[:300], diff, header, arr_to_dict(header[raw_srt[:300]]))
-    # compare_results(srt[-300:], diff, header, arr_to_dict(header[raw_srt[-300:]]))
-
-    # # compare
-    # mesen, immun = im_genes()
-    # print('Immunoreactive')
-    # compare_results(srt[:300], diff, header, immun)
-    # print('Mesenchymal')
-    # compare_results(srt[-300:], diff, header, mesen)
-
     # output our "high weight genes"
     pos, neg = high_weight_genes_quantile(diff, header, 2.5)
     save_gene_list(pos, 'mesenchymal_genes_sd.txt')
     save_gene_list(neg, 'immunoreactive_genes_sd.txt')
     print('Totol genes 2.5 standard deviation away:')
     print('{} mesenchymal, {} immunoreactive'.format(len(pos), len(neg)))
-
-    # # output the top / bottom N genes
-    # srt = np.argsort(diff)
-    # cutoff = 150
-    # save_gene_list(header[srt[:cutoff]], 'immunoreactive_genes_{}.txt'.format(cutoff))
-    # save_gene_list(header[srt[-cutoff:]], 'mesenchymal_genes_{}.txt'.format(cutoff))
 
 # decode the centroid of proliferative or differentiated group, and find the max diff genes
 def pd_vector ():
