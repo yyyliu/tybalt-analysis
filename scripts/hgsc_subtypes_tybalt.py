@@ -22,43 +22,6 @@ import pandas as pd
 # our helper class
 util = Util()
 
-# file paths
-p_mesen = os.path.join(util.base, 'results', 'hgsc_node87genes_pos.tsv')
-p_immun = os.path.join(util.base, 'results', 'hgsc_node87genes_neg.tsv')
-p_mesen2 = os.path.join(util.base, 'results', 'hgsc_node56genes_neg.tsv')
-p_immun2 = os.path.join(util.base, 'results', 'hgsc_node56genes_pos.tsv')
-
-# wrangling the patient ID data - save to a CSV file
-def save_id ():
-    res = []
-    with open(util.p_latent, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter='\t')
-        for row in reader:
-            if row[1] == '1' and row[2] == '2':
-                continue # discard header row
-            res.append(row[0])
-    out = os.path.join(util.base, 'data', 'patient_id.csv')
-    with open(out, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, delimiter=',')
-        writer.writerow(res)
-
-# wrangle result file to be in WebGestalt required format
-def wrangle_gene_list ():
-    ps = [p_mesen, p_immun, p_mesen2, p_immun2]
-    out = [
-        'hgsc_node87genes_pos.txt',
-        'hgsc_node87genes_neg.txt',
-        'hgsc_node56genes_neg.txt',
-        'hgsc_node56genes_pos.txt'
-    ]
-    for i in range(4):
-        data = util.read_tsv(ps[i], str, 0)[:, 0]
-        fn = os.path.join(util.base, 'results', out[i])
-        with open(fn, 'w', newline='') as f:
-            writer = csv.writer(f)
-            for d in data:
-                writer.writerow([d])
-
 # save gene list to txt file, with one gene per row
 def save_gene_list (data, fn):
     fn = os.path.join(util.base, 'results', fn)
@@ -94,26 +57,6 @@ def arr_to_dict (arr):
     for i in arr:
         res[i] = 1
     return res
-
-# read their genes about mesen and immuno subtypes
-def im_genes ():
-    ps = [p_mesen, p_mesen2, p_immun, p_immun2]
-    genes = [util.read_tsv(p, str, 0)[:, 0] for p in ps]
-
-    mesen = np.concatenate((genes[0], genes[1]))
-    immun = np.concatenate((genes[2], genes[3]))
-
-    return arr_to_dict(mesen), arr_to_dict(immun)
-
-# helper function used by im_vector()
-def compare_results (ids, arr, header, lookup):
-    count = 0
-    for i in ids:
-        gene = header[i]
-        if (gene in lookup):
-            # print('{}\t{}'.format(gene, arr[i]))
-            count += 1
-    print('Total: {}/{}'.format(count, ids.shape[0]))
 
 def plot_vector (vec, fn):
     # 1. make the axis a unit vector
