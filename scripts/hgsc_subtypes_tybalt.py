@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """ 
-1. Replicate the results in hgsc_subtypes_tybalt.ipynb
+Cancer Subtype Analysis
 
 Note that Tybalt uses python version 3.5
 The associated environment can be activated via:
@@ -9,12 +9,15 @@ The associated environment can be activated via:
 import os
 import csv
 import numpy as np
-from scipy.stats import skew, skewtest
+from scipy.stats import skew, norm
+from sklearn import preprocessing
 from tybalt_util import Util
 
 import matplotlib as mpl
 mpl.use('TkAgg')
 import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
 # our helper class
 util = Util()
@@ -112,6 +115,34 @@ def compare_results (ids, arr, header, lookup):
             count += 1
     print('Total: {}/{}'.format(count, ids.shape[0]))
 
+def plot_vector (vec, fn):
+    # 1. make the axis a unit vector
+    v = preprocessing.normalize(vec.reshape(1, -1))
+
+    # 2. get z coordinates of all subtypes
+    header = util.read_header()
+    meta = util.read_meta()
+    ids = util.join_meta()
+    names = ['Mesenchymal', 'Immunoreactive', 'Proliferative', 'Differentiated']
+    groups = [util.subtype_group(meta, ids, name) for name in names]
+    z = util.read_ls()
+    groups = [z[g] for g in groups]
+
+    # 3. project
+    dist = [np.dot(g, v.T).flatten() for g in groups]
+
+    # 3. plot
+    x = []
+    y = []
+    for i in range(len(names)):
+        x += [names[i]] * dist[i].shape[0]
+        y = np.append(y, dist[i])
+    print(len(x), y.shape)
+    df = pd.DataFrame({'Subtype': x, 'Attribute Vector': y})
+    plt.figure()
+    sns.swarmplot(x = 'Subtype', y = 'Attribute Vector', data = df)
+    plt.savefig('./result/{}.png'.format(fn))
+
 # decode the centroid of mesen or immuno group, and find the max diff genes
 # compare our gene list with their list
 def im_vector ():
@@ -131,28 +162,15 @@ def im_vector ():
     genes = decoder.predict(means)
     diff = genes[0] - genes[1] # mesenchymal - immunoreactive
 
-    # histogram of diff
+    # histogram, skewness test and plot distrubtion along vector
+    plot_vector(means[0] - means[1], 'mesen-immuno-swarm')
     plt.figure()
     plt.hist(diff, 20, facecolor='pink', alpha=0.75)
     plt.title('Mesenchymal - Immunoreactive')
     plt.xlabel('Gene expression diff')
     plt.ylabel('Count')
     plt.savefig('./result/mesen-immuno-diff.png')
-
-    # transform right-skewed data
     print('Skewness: {}'.format(skew(diff)))
-    # make the data positive before taking square root
-    diff = np.sqrt(diff - diff.min())
-    print('Skewness after transformation: {}'.format(skew(diff)))
-    print(skewtest(diff))
-
-    # plot again
-    plt.figure()
-    plt.hist(diff, 20, facecolor='pink', alpha=0.75)
-    plt.title('Mesenchymal - Immunoreactive')
-    plt.xlabel('Gene expression diff, after transformation sqrt(x - min(x))')
-    plt.ylabel('Count')
-    plt.savefig('./result/mesen-immuno-transformed.png')
 
     # # what if I directly compute the mean of input genes?
     # raw = util.read_raw()
@@ -171,7 +189,7 @@ def im_vector ():
     # compare_results(srt[-300:], diff, header, mesen)
 
     # output our "high weight genes"
-    pos, neg = high_weight_genes(diff, header, 2.5)
+    pos, neg = high_weight_genes_quantile(diff, header, 2.5)
     save_gene_list(pos, 'mesenchymal_genes_sd.txt')
     save_gene_list(neg, 'immunoreactive_genes_sd.txt')
     print('Totol genes 2.5 standard deviation away:')
@@ -201,32 +219,18 @@ def pd_vector ():
     genes = decoder.predict(means)
     diff = genes[0] - genes[1] # mesenchymal - immunoreactive
 
-    # histogram of diff
+    # histogram and skewness test
+    plot_vector(means[0] - means[1], 'pro-def-swarm')
     plt.figure()
     plt.hist(diff, 20, facecolor='pink', alpha=0.75)
     plt.title('Proliferative - Differentiated')
     plt.xlabel('Gene expression diff')
     plt.ylabel('Count')
     plt.savefig('./result/pro-def-diff.png')
-
-    # transform right-skewed data
     print('Skewness: {}'.format(skew(diff)))
-    # shift the data rightward before taking square root, so it doesn't adjust so much
-    shift = 0.3
-    diff = np.sqrt(diff - diff.min() + shift)
-    print('Skewness after transformation: {}'.format(skew(diff)))
-    print(skewtest(diff))
-
-    # plot again
-    plt.figure()
-    plt.hist(diff, 20, facecolor='pink', alpha=0.75)
-    plt.title('Proliferative - Differentiated')
-    plt.xlabel('Gene expression diff, after transformation')
-    plt.ylabel('Count')
-    plt.savefig('./result/pro-def-transformed.png')
 
     # output our "high weight genes"
-    pos, neg = high_weight_genes(diff, header, 2.5)
+    pos, neg = high_weight_genes_quantile(diff, header, 2.5)
     save_gene_list(pos, 'proliferative_genes_sd.txt')
     save_gene_list(neg, 'differentiated_genes_sd.txt')
     print('Totol genes 2.5 standard deviation away:')
@@ -244,6 +248,16 @@ def high_weight_genes (w, header, highsd=2):
             pos.append(header[i])
         if w[i] < mean - highsd * sd:
             neg.append(header[i])
+    return pos, neg
+
+# compute quantile for the given SD in a standard normal
+# and then use the quantile as threshold
+def high_weight_genes_quantile (w, header, highsd=2):
+    n = w.shape[0]
+    cutoff = n - int(n * norm.cdf(highsd))
+    srt = np.argsort(w)
+    neg = [header[i] for i in srt[:cutoff]]
+    pos = [header[i] for i in srt[-cutoff:]]
     return pos, neg
 
 # like im_vector, but don't do the diff
@@ -299,8 +313,8 @@ def compare_gene_list ():
     for i in range(l):
         p_ours = os.path.join(util.base, 'results', '{}_genes_sd.txt'.format(ours[i]))
         p_theirs = os.path.join(util.base, 'results', theirs[i])
-        gene_ours = util.read_tsv(p_ours, str, 0)[:, 0]
-        gene_theirs = util.read_tsv(p_theirs, str, 0)[:, 0]
+        gene_ours = util.read_tsv(p_ours, str, 0, 0)[:, 0]
+        gene_theirs = util.read_tsv(p_theirs, str, 0, 0)[:, 0]
         lookup = arr_to_dict(gene_theirs)
         count = 0
         for gene in gene_ours:

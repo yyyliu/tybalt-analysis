@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """ 
-1. Replicate the results in hgsc_subtypes_tybalt.ipynb
+Patient Sex Analysis
 
 Note that Tybalt uses python version 3.5
 The associated environment can be activated via:
