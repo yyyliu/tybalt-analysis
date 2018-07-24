@@ -37,7 +37,7 @@ Below are visualizations (Figures 1-2) of how samples distribute along the two a
 
 We then compare the overlap between our resulting gene list and that of [1]. The agreement is notably poor, including multiple cases with a null intersection.
 
-![table]
+<img src="images/table.png" width="650px"/>
 
 We also ran the gene list through pathway analysis and the results show interesting differences to those of [1]. However we do not have sufficient biological knowledge to judge if these differences are sensible. These results are in the folder `result/pathway` of our GitHub repository.
 
