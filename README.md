@@ -24,26 +24,29 @@ The major differences of our approach from [1] are: (1) we do not project the ve
 Below are visualizations (Figures 1-2) of how samples distribute along the two attribute vectors ![t-mi] and ![t-pd]. Compared to the original latent encodings (Figure 3), these custom “axes” appear to better separate corresponding pairs of subtypes.
 
 ![fig1]
+
 **Figure 1.** Distribution along the *mesenchymal* - *immunoreactive* vector ![t-mi]
 
 ![fig2]
+
 **Figure 2.** Distribution along the *proliferative* - *differentiated* vector ![t-pd]
 
 ![fig3]
-Figure 3. Distributions along original latent encoding dimensions (from [1]).
+
+**Figure 3.** Distributions along original latent encoding dimensions (from [1]).
 
 We then compare the overlap between our resulting gene list and that of [1]. The agreement is notably poor, including multiple cases with a null intersection.
 
-Our list | Their list | # genes in both | # genes in our list | # genes in their list | Agreement
---- | --- | --- | --- | --- | --- | ---
-Mesenchymal | 87 + | 19 | 32 | 56 | 59%
-Mesenchymal | 56 - | 1 | 32 | 90 | 3%
-Immunoreactive | 56 + | 15 | 32 | 58  |46%
-Immunoreactive | 87 - | 0 | 32 | 74 | 0%
-Proliferative | 79 + | 9 | 32 | 60 | 28%
-Proliferative | 38 - | 8 | 32 | 134 | 25%
-Differentiated | 38 + | 1 | 32 | 15 | 3%
-Differentiated | 79 - | 0 | 32 | 39 | 0%
+|Our list|Their list|# genes in both|# genes in our list|# genes in their list|Agreement|
+|---|---|---|---|---|---|---|
+|Mesenchymal | 87 + | 19 | 32 | 56 | 59%|
+|Mesenchymal | 56 - | 1 | 32 | 90 | 3%|
+|Immunoreactive | 56 + | 15 | 32 | 58  |46%|
+|Immunoreactive | 87 - | 0 | 32 | 74 | 0%|
+|Proliferative | 79 + | 9 | 32 | 60 | 28%|
+|Proliferative | 38 - | 8 | 32 | 134 | 25%|
+|Differentiated | 38 + | 1 | 32 | 15 | 3%|
+|Differentiated | 79 - | 0 | 32 | 39 | 0%|
 
 We also ran the gene list through pathway analysis and the results show interesting differences to those of [1]. However we do not have sufficient biological knowledge to judge if these differences are sensible. These results are in the folder `result/pathway` of our GitHub repository.
 

@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 
-h = 24
+h = 16
 
 for f in os.listdir('.'):
   name, ext = os.path.splitext(f)
