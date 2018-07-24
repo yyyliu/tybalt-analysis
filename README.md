@@ -15,21 +15,21 @@ While encoding 82 does not separate patient sex as well as the linear SVM hyperp
 
 Now we turn to the analysis of high grade serous ovarian cancer subtypes. We conducted a similar analysis involving vector arithmetic. Here are our steps, using the *immunoreactive* and *mesenchymal* pair as an example:
 
-1. We first compute the centroid of each subtype in z, namely ![t-i] and ![t-m].
-2. We run both ![t-i] and ![t-m] through the decoder to reconstruct the corresponding gene profiles ![x-i] and ![x-m]. We subtract to get the signed difference ![eq1].
-3. Following [1], we next look to threshold for genes 2.5 standard deviations away in both positive and negative tails. However, the distribution is not normal and so we use quantile-based thresholding. We first find the quantiles corresponding to 2.5 standard deviations in a standard normal distribution (0.06% and 99.4%, respectively). We then take the corresponding top and bottom quantiles of ![x-mi] to form the gene list. The genes in the positive tail are associated with the *mesenchymal* subtype, while the genes in the negative tail are associated with *immunoreactive*.
+1. We first compute the centroid of each subtype in z, namely <img src="images/resized/theta_immuno.png" height="14px"/> and <img src="images/resized/theta_mes.png" height="14px"/>.
+2. We run both <img src="images/resized/theta_immuno.png" height="14px"/> and <img src="images/resized/theta_mes.png" height="14px"/> through the decoder to reconstruct the corresponding gene profiles <img src="images/resized/x_immuno.png" height="14px"/> and <img src="images/resized/x_mes.png" height="14px"/>. We subtract to get the signed difference <img src="images/resized/eq1.png" height="14px"/>.
+3. Following [1], we next look to threshold for genes 2.5 standard deviations away in both positive and negative tails. However, the distribution is not normal and so we use quantile-based thresholding. We first find the quantiles corresponding to 2.5 standard deviations in a standard normal distribution (0.06% and 99.4%, respectively). We then take the corresponding top and bottom quantiles of <img src="images/resized/x_mes_immuno.png" height="14px"/> to form the gene list. The genes in the positive tail are associated with the *mesenchymal* subtype, while the genes in the negative tail are associated with *immunoreactive*.
 
 The major differences of our approach from [1] are: (1) we do not project the vector back to a single latent encoding dimension; (2) we apply the non-linear decoder function instead of directly inspecting decoder weights; and (3) we use quantile-based thresholding.
 
-Below are visualizations (Figures 1-2) of how samples distribute along the two attribute vectors ![t-mi] and ![t-pd]. Compared to the original latent encodings (Figure 3), these custom “axes” appear to better separate corresponding pairs of subtypes.
+Below are visualizations (Figures 1-2) of how samples distribute along the two attribute vectors <img src="images/resized/theta_mes_immuno.png" height="14px"/> and <img src="images/resized/theta_prolif_diff.png" height="14px"/>. Compared to the original latent encodings (Figure 3), these custom “axes” appear to better separate corresponding pairs of subtypes.
 
 ![fig1]
 
-**Figure 1.** Distribution along the *mesenchymal* - *immunoreactive* vector ![t-mi]
+**Figure 1.** Distribution along the *mesenchymal* - *immunoreactive* vector <img src="images/resized/theta_mes_immuno.png" height="14px"/>
 
 ![fig2]
 
-**Figure 2.** Distribution along the *proliferative* - *differentiated* vector ![t-pd]
+**Figure 2.** Distribution along the *proliferative* - *differentiated* vector <img src="images/resized/theta_prolif_diff.png" height="14px"/>
 
 ![fig3]
 
