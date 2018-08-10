@@ -223,7 +223,7 @@ def cluster_quality ():
         print('{}: {}%'.format(names[i], int(score * 100)))
 
 # compare their and our high weight genes
-def compare_gene_list ():
+def compare_gene_list (v2=False):
     l = 8
     ours = ['mesenchymal', 'immunoreactive', 'proliferative', 'differentiated']
     ours = [ours[int(i/2)] for i in range(l)]
@@ -232,7 +232,8 @@ def compare_gene_list ():
     theirs = ['hgsc_node{}genes_{}.tsv'.format(prefix[i], suffix[i]) for i in range(l)]
 
     for i in range(l):
-        p_ours = os.path.join(util.base, 'results', '{}_genes_sd.txt'.format(ours[i]))
+        suf = '_v2' if v2 else ''
+        p_ours = os.path.join(util.base, 'results', '{}_genes_sd{}.txt'.format(ours[i], suf))
         p_theirs = os.path.join(util.base, 'results', theirs[i])
         gene_ours = util.read_tsv(p_ours, str, 0, 0)[:, 0]
         gene_theirs = util.read_tsv(p_theirs, str, 0, 0)[:, 0]
@@ -244,8 +245,37 @@ def compare_gene_list ():
         print('Comparing {} and {} {}:'.format(ours[i], prefix[i], suffix[i]))
         print('Overlap | Ours | Theirs: {} | {} | {}'.format(count, gene_ours.shape[0], gene_theirs.shape[0]))
 
+# what if we subtract in z first before decoding
+def vector_v2 ():
+    # get the indices of the two subtypes
+    header = util.read_header()
+    meta = util.read_meta()
+    ids = util.join_meta()
+    names = ['Mesenchymal', 'Immunoreactive', 'Proliferative', 'Differentiated']
+    groups = [util.subtype_group(meta, ids, name) for name in names]
+
+    # compute centroid
+    z = util.read_ls()
+    means = np.asarray([np.mean(z[g], axis=0) for g in groups], dtype=float)
+    diffs = [means[0] - means[1], means[2] - means[3]]
+
+    i = 0
+    to_lower = lambda s: s[:1].lower() + s[1:] if s else ''
+    for diff in diffs:
+        # decode centroid
+        decoder = util.read_decoder()
+        diff = decoder.predict(diff.reshape(1, diff.shape[0]))[0]
+
+        # output our "high weight genes"
+        pos, neg = high_weight_genes_quantile(diff, header, 2.5)
+        save_gene_list(pos, '{}_genes_sd_v2.txt'.format(to_lower(names[i])))
+        save_gene_list(neg, '{}_genes_sd_v2.txt'.format(to_lower(names[i+1])))
+        i += 2
+
 if __name__ == '__main__':
     # cluster_quality ()
     im_vector()
     pd_vector()
     compare_gene_list()
+    # vector_v2()
+    # compare_gene_list(v2=True)
